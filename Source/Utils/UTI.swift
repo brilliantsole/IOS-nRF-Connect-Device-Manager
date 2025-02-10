@@ -47,7 +47,7 @@ enum UTI: String, CaseIterable {
     }
     
     private static func typeOf(_ url: URL) -> String? {
-        #if os(watchOS)
+        #if os(watchOS) || os(tvOS)
             return nil
         #elseif os(macOS)
             return try? NSWorkspace.shared.type(ofFile: url.path)

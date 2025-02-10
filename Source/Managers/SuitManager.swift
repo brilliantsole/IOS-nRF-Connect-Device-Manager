@@ -141,7 +141,7 @@ public class SuitManager: McuManager {
         let roles = response.manifests.compactMap(\.role)
         self.roleIndex = 0
         self.roles = roles
-        if #available(iOS 13.0, macOS 10.15, watchOS 6.0, *) {
+        if #available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *) {
             let rolesList = ListFormatter.localizedString(byJoining: roles.map(\.description))
             self.logDelegate?.log("Received Response with Roles: \(rolesList)", ofCategory: .suit, atLevel: .debug)
         }
