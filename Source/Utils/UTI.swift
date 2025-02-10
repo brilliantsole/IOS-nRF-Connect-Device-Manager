@@ -9,9 +9,9 @@
 import Foundation
 import UniformTypeIdentifiers
 #if os(macOS)
-import AppKit
+    import AppKit
 #else
-import UIKit
+    import UIKit
 #endif
 
 // MARK: - UTI
@@ -43,15 +43,17 @@ enum UTI: String, CaseIterable {
     }
     
     static func forFile(_ file: URL) -> UTI? {
-        return typeOf(file).flatMap({ from($0) })
+        return typeOf(file).flatMap { from($0) }
     }
     
     private static func typeOf(_ url: URL) -> String? {
-#if os(macOS)
-        return try? NSWorkspace.shared.type(ofFile: url.path)
-#else
-        let document = UIDocument(fileURL: url)
-        return document.fileType
-#endif
+        #if os(watchOS)
+            return nil
+        #elseif os(macOS)
+            return try? NSWorkspace.shared.type(ofFile: url.path)
+        #else
+            let document = UIDocument(fileURL: url)
+            return document.fileType
+        #endif
     }
 }

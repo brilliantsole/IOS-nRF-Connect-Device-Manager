@@ -11,7 +11,6 @@ import SwiftCBOR
 // MARK: - SuitManager
 
 public class SuitManager: McuManager {
-    
     // MARK: Constants
     
     private static let POLLING_WINDOW_MS = 5000
@@ -97,7 +96,7 @@ public class SuitManager: McuManager {
         roleIndex = 0
         roles = []
         responses = []
-        send(op: .read, commandId: SuitID.manifestList, payload: nil, 
+        send(op: .read, commandId: SuitID.manifestList, payload: nil,
              callback: listManifestCallback)
     }
     
@@ -142,7 +141,7 @@ public class SuitManager: McuManager {
         let roles = response.manifests.compactMap(\.role)
         self.roleIndex = 0
         self.roles = roles
-        if #available(iOS 13.0, macOS 10.15, *) {
+        if #available(iOS 13.0, macOS 10.15, watchOS 6.0, *) {
             let rolesList = ListFormatter.localizedString(byJoining: roles.map(\.description))
             self.logDelegate?.log("Received Response with Roles: \(rolesList)", ofCategory: .suit, atLevel: .debug)
         }
@@ -167,12 +166,13 @@ public class SuitManager: McuManager {
      and selected attributes of installed manifests of specified role (asynchronous).
      */
     public func getManifestState(for role: McuMgrManifestListResponse.Manifest.Role,
-                                 callback: @escaping McuMgrCallback<McuMgrManifestStateResponse>) {
+                                 callback: @escaping McuMgrCallback<McuMgrManifestStateResponse>)
+    {
         let fixCallback: McuMgrCallback<McuMgrManifestStateResponse> = { response, error in
             callback(response, error)
         }
         
-        let payload: [String:CBOR] = [
+        let payload: [String: CBOR] = [
             "role": CBOR.unsignedInt(role.rawValue)
         ]
         send(op: .read, commandId: SuitID.manifestState, payload: payload,
@@ -316,7 +316,7 @@ public class SuitManager: McuManager {
         
         // Check for an error.
         if let error {
-            if case let McuMgrTransportError.insufficientMtu(newMtu) = error {
+            if case McuMgrTransportError.insufficientMtu(let newMtu) = error {
                 do {
                     try self.setMtu(newMtu)
                     self.upload(uploadData, at: 0)
@@ -517,7 +517,8 @@ public class SuitManager: McuManager {
             
             guard let resourceID = response.resourceID,
                   let resource = FirmwareUpgradeResource(resourceID),
-                  let sessionID = response.sessionID else {
+                  let sessionID = response.sessionID
+            else {
                 guard self.pollAttempts < Self.MAX_POLL_ATTEMPTS else {
                     self.declareSuccess()
                     return
@@ -588,15 +589,15 @@ public class SuitManager: McuManager {
     private func buildPayload(for data: Data, at offset: UInt64, with length: UInt64) -> [String: CBOR] {
         let chunkOffset = offset
         let chunkEnd = min(chunkOffset + length, UInt64(data.count))
-        var payload: [String: CBOR] = ["data": CBOR.byteString([UInt8](data[chunkOffset..<chunkEnd])),
-                                      "off": CBOR.unsignedInt(chunkOffset)]
+        var payload: [String: CBOR] = ["data": CBOR.byteString([UInt8](data[chunkOffset ..< chunkEnd])),
+                                       "off": CBOR.unsignedInt(chunkOffset)]
         if let sessionID {
             payload.updateValue(CBOR.unsignedInt(sessionID), forKey: "stream_session_id")
         }
         
         if let targetID {
-           payload.updateValue(CBOR.unsignedInt(targetID), forKey: "target_id")
-       }
+            payload.updateValue(CBOR.unsignedInt(targetID), forKey: "target_id")
+        }
         
         if chunkOffset == 0 {
             let deferInstall = uploadImages.contains(where: { $0.content == .suitCache })
@@ -612,7 +613,6 @@ public class SuitManager: McuManager {
 // MARK: - ConnectionObserver
 
 extension SuitManager: ConnectionObserver {
-    
     public func transport(_ transport: McuMgrTransport, didChangeStateTo state: McuMgrTransportState) {
         // Disregard other states.
         guard state == .disconnected else { return }
@@ -661,7 +661,6 @@ public enum SuitManagerError: Error, LocalizedError {
 // MARK: - SuitManagerDelegate
 
 public protocol SuitManagerDelegate: ImageUploadDelegate {
-    
     /**
      In SUIT (Software Update for the Internet of Things), various resources, such as specific files, URL contents, etc. may be requested by the firmware device. When it does, this callback will be triggered.
      */
